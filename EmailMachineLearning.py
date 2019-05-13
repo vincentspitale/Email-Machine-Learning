@@ -52,10 +52,8 @@ print(aggregated['message'])
 aggregated['length'] =(aggregated['message'].str.len())
 print(aggregated.head())
 print()
-aggregated['length'].plot(bins=100,kind='hist', color='g')
-plt.yscale("log")
-plt.title("Email Length Distribution")
-plt.savefig('email_length_histogram.png', dpi = 600)
+aggregated['length'].plot(bins=100,kind='hist')
+plt.savefig('email_length_histogram.png', dpi = 200)
 print(aggregated.length.describe())
 
 def text_process(mess):
@@ -69,22 +67,40 @@ def text_process(mess):
 # return [word for word in nopunc.split() if word.lower() not in stopwords.words('english')]
 
 print(aggregated['message'].head(5).apply(text_process))
-## Machine Learning
+
+
+## Machine Learning!
+# Take all of the emails as an aggregate and count the unique words found
 bow_transformer = CountVectorizer(analyzer=text_process).fit(aggregated['message'])
+# Print out how many unique words there are
 print(len(bow_transformer.vocabulary_))
 
+# Grab the 4th email in the dataset and print out the message
 message4=aggregated['message'][3]
 print(message4)
+# Convert it to a quantitative state.
 bow4=bow_transformer.transform([message4])
+# Print the message in the transformed state
+# For example, (0,36) means the 37th word from the dataset occurs in this email
+# The row number is always zero because it's a one-dimensional list
 print(bow4)
+# Every value in this matrix is either a 1 (word occurs) or 0 (word does not occur)
 print(bow4.shape)
 
 messages_bow = bow_transformer.transform(aggregated['message'])
-print('Shape of Sparse Matrix: ',messages_bow.shape)
-print('Amount of non-zero occurences:',messages_bow.nnz)
-sparsity =(100.0 * messages_bow.nnz/(messages_bow.shape[0]*messages_bow.shape[1]))
-print('sparsity:{}'.format(round(sparsity)))
 
+# Indicates the number of rows (messages) and columns (unique words)
+# We call it sparse because most entries are zero
+# since most emails will not have a large subset of all words found in the
+# entire database.
+print('Shape of Sparse Matrix: ',messages_bow.shape)
+# Tells us the total number of non-zero entries in the sparse matrix
+print('Amount of non-zero occurences:',messages_bow.nnz)
+# Measures what percent of the entries are populated with non-zero values.
+sparsity =(100.0 * messages_bow.nnz/(messages_bow.shape[0]*messages_bow.shape[1]))
+print('sparsity:{}'.format(round(sparsity,4)))
+
+# Calculate the IDF value for each unique word in this dataset
 tfidf_transformer=TfidfTransformer().fit(messages_bow)
 tfidf4 = tfidf_transformer.transform(bow4)
 print(tfidf4)
@@ -92,13 +108,22 @@ print(tfidf4)
 messages_tfidf=tfidf_transformer.transform(messages_bow)
 print(messages_tfidf.shape)
 
+# Feed the IDF values into a machine learning model. Use the words from each email to create a
+# # model that can predict whether a message is spam or ham.
+# Print out an example of a predicted label as well as an actual label.
 spam_detect_model = MultinomialNB().fit(messages_tfidf,aggregated['labels'].astype(str))
 print('predicted:',spam_detect_model.predict(tfidf4)[0])
 print('expected:',aggregated['labels'][3])
+
+# Use the model above to make predictions for all emails in the dataset.
 all_predictions = spam_detect_model.predict(messages_tfidf)
 print(all_predictions)
 
+# Print out a report indicating the precision, recall, f1-score and support
+# for each message type.
 print(classification_report(aggregated['labels'].astype(str),all_predictions, digits = 4))
-print(confusion_matrix(aggregated['labels'].astype(str),all_predictions))
 
-print(tfidf_transformer.idf_[bow_transformer.vocabulary_['meeting']])
+# Print out a matrix of the raw counts used to create the classification report above.
+# Numbers on the main diagonal indicate correct predictions.
+# Numbers elsewhere indicate incorrect predictions.
+print(confusion_matrix(aggregated['labels'].astype(str),all_predictions))
