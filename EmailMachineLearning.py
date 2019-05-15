@@ -94,7 +94,7 @@ messages_bow = bow_transformer.transform(aggregated['message'])
 # since most emails will not have a large subset of all words found in the
 # entire database.
 print('Shape of Sparse Matrix: ',messages_bow.shape)
-# Tells us the total number of non-zero entries in the sparse matrix
+# Tells the total number of non-zero entries in the sparse matrix
 print('Amount of non-zero occurences:',messages_bow.nnz)
 # Measures what percent of the entries are populated with non-zero values.
 sparsity =(100.0 * messages_bow.nnz/(messages_bow.shape[0]*messages_bow.shape[1]))
