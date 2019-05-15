@@ -69,7 +69,7 @@ def text_process(mess):
 print(aggregated['message'].head(5).apply(text_process))
 
 
-## Machine Learning!
+## Machine Learning
 # Take all of the emails as an aggregate and count the unique words found
 bow_transformer = CountVectorizer(analyzer=text_process).fit(aggregated['message'])
 # Print out how many unique words there are
@@ -90,7 +90,7 @@ print(bow4.shape)
 messages_bow = bow_transformer.transform(aggregated['message'])
 
 # Indicates the number of rows (messages) and columns (unique words)
-# We call it sparse because most entries are zero
+# Call it sparse because most entries are zero
 # since most emails will not have a large subset of all words found in the
 # entire database.
 print('Shape of Sparse Matrix: ',messages_bow.shape)
